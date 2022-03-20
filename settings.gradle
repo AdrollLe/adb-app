@@ -1,0 +1,3 @@
+include ':jadb'
+include ':app'
+rootProject.name = "ADB Application"
