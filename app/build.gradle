@@ -3,13 +3,13 @@ plugins {
 }
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 32
     buildToolsVersion "29.0.3"
 
     defaultConfig {
         applicationId "adb.gambler.adbapplication"
         minSdkVersion 21
-        targetSdkVersion 29
+        targetSdkVersion 32
         versionCode 1
         versionName "1.0"
 
@@ -30,12 +30,14 @@ android {
 
 dependencies {
 
-    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.appcompat:appcompat:1.4.1'
     implementation 'com.google.android.material:material:1.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+
+    implementation 'org.java-websocket:Java-WebSocket:1.3.7'
 
     implementation(project(":jadb"))
 }
