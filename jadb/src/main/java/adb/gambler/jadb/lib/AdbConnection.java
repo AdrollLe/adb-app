@@ -12,8 +12,6 @@ import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-import adb.gambler.jadb.utils.HandlerUtil;
-
 /**
  * This class represents an ADB connection.
  *
@@ -148,7 +146,6 @@ public class AdbConnection implements Closeable {
 
                         Message message = Message.obtain();
                         message.obj = "thread, cmd = " + msg.command;
-                        HandlerUtil.getInstance().sendMessage(message);
                         switch (msg.command) {
                             /* Stream-oriented commands */
                             case AdbProtocol.CMD_OKAY:
@@ -289,8 +286,8 @@ public class AdbConnection implements Closeable {
      * @throws IOException          If the socket fails while connecting
      * @throws InterruptedException If we are unable to wait for the connection to finish
      */
-    public void connect() throws IOException, InterruptedException {
-        connect(Long.MAX_VALUE, TimeUnit.MILLISECONDS, false);
+    public boolean connect() throws IOException, InterruptedException {
+        return connect(Long.MAX_VALUE, TimeUnit.MILLISECONDS, false);
     }
 
     /**
@@ -320,7 +317,6 @@ public class AdbConnection implements Closeable {
 
             Message message = Message.obtain();
             message.obj = "connected";
-            HandlerUtil.getInstance().sendMessage(message);
         }
 
         /* Start the connection thread to respond to the peer */
