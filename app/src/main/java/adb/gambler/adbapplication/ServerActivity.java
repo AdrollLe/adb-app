@@ -2,7 +2,6 @@ package adb.gambler.adbapplication;
 
 import android.os.Bundle;
 import android.util.Base64;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -54,7 +53,7 @@ public class ServerActivity extends AppCompatActivity {
 						countDownThread.start();
 					}
 
-					adbConnection.open("shell:input keyevent 24");
+					controlView = new ControlView(this, adbConnection);
 				}else {
 					tvConnect.setText("连接");
 					countDownThread.interrupt();
@@ -72,7 +71,6 @@ public class ServerActivity extends AppCompatActivity {
 		super.onStart();
 
 		countDownThread = new CountDownThread(this);
-		controlView = new ControlView(this, adbConnection);
 	}
 
 	@Override

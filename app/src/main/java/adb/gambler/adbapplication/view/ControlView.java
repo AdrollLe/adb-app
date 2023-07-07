@@ -10,6 +10,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.blankj.utilcode.util.ThreadUtils;
+
 import adb.gambler.adbapplication.R;
 import adb.gambler.jadb.lib.AdbConnection;
 
@@ -29,6 +31,8 @@ public class ControlView extends View{
 	private ViewGroup rootView;
 	private Paint paint, lastPaint;
 	private Path path, lastPath;
+
+	private float startX, startY, endX, endY;
 
 	public ControlView(Context context, AdbConnection connection) {
 		super(context);
@@ -71,6 +75,9 @@ public class ControlView extends View{
 							path.reset();
 						}
 						path.moveTo(event.getX(), event.getY());
+
+						startX = event.getX();
+						startY = event.getY();
 						break;
 					case MotionEvent.ACTION_MOVE:
 						// 用户移动手指时，将路径加入到现有路径中
@@ -78,6 +85,25 @@ public class ControlView extends View{
 							lastPath.addPath(path);
 						}
 						path.lineTo(event.getX(), event.getY());
+						break;
+					case MotionEvent.ACTION_UP:
+						endX = event.getX();
+						endY = event.getY();
+
+						ThreadUtils.getCachedPool().execute(new Runnable() {
+							@Override
+							public void run() {
+								try {
+									if (Math.abs(startX - endX) < 10 && Math.abs(startY - endY) < 10){
+										connection.open("shell:input tap " + endX + " " + endY);
+									}else {
+										connection.open("shell:input swipe " + startX + " " + startY + " " + endX + " " + endY);
+									}
+								}catch (Exception e){
+									e.printStackTrace();
+								}
+							}
+						});
 						break;
 					default:
 						return false;
