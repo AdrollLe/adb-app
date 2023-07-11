@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import com.blankj.utilcode.util.ThreadUtils;
 
 import adb.gambler.adbapplication.R;
+import adb.gambler.adbapplication.manager.CommandManager;
 import adb.gambler.jadb.lib.AdbConnection;
 
 /**
@@ -95,9 +96,9 @@ public class ControlView extends View{
 							public void run() {
 								try {
 									if (Math.abs(startX - endX) < 10 && Math.abs(startY - endY) < 10){
-										connection.open("shell:input tap " + endX + " " + endY);
+										connection.open(CommandManager.click(endX, endY));
 									}else {
-										connection.open("shell:input swipe " + startX + " " + startY + " " + endX + " " + endY);
+										connection.open(CommandManager.move(startX, startY, endX, endY));
 									}
 								}catch (Exception e){
 									e.printStackTrace();

@@ -12,30 +12,6 @@
         android:id="@+id/tv_info"
         android:gravity="center" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="35dp"
-        android:orientation="horizontal">
-
-        <EditText
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="3"
-            android:text="input swipe 300 700 300 200"
-            android:id="@+id/et_input"
-            android:textColor="@color/purple_500"
-            android:textSize="14sp"
-            android:focusable="false"/>
-
-        <Button
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="执行"
-            android:gravity="center"
-            android:id="@+id/bt_run"/>
-    </LinearLayout>
-
     <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
         android:layout_height="match_parent"

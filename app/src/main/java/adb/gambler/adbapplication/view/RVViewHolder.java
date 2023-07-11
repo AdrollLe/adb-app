@@ -1,10 +1,12 @@
-package adb.gambler.adbapplication;
+package adb.gambler.adbapplication.view;
 
 import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import adb.gambler.adbapplication.R;
 
 /**
  * <p> File description: <p>

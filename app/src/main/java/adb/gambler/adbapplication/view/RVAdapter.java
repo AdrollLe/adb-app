@@ -1,4 +1,4 @@
-package adb.gambler.adbapplication;
+package adb.gambler.adbapplication.view;
 
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -6,7 +6,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.List;
+import adb.gambler.adbapplication.R;
 
 /**
  * <p> File description: <p>

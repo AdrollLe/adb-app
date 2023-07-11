@@ -1,9 +1,10 @@
 package adb.gambler.adbapplication;
 
 import android.Manifest;
+import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
-import android.widget.Button;
-import android.widget.EditText;
+import android.util.Base64;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,26 +16,28 @@ import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.PermissionUtils;
 
 import java.io.IOException;
+import java.net.Socket;
 import java.util.List;
 
+import adb.gambler.adbapplication.service.KeepAliveService;
+import adb.gambler.adbapplication.view.RVAdapter;
 import adb.gambler.jadb.lib.AdbConnection;
+import adb.gambler.jadb.lib.AdbCrypto;
 
 public class ClientActivity extends AppCompatActivity {
 
     private TextView textView;
-    private EditText editText;
-    private Button button;
     private RecyclerView recyclerView;
 
     private AdbConnection adbConnection;
+
+    private boolean result = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_client);
         textView = findViewById(R.id.tv_info);
-        editText = findViewById(R.id.et_input);
-        button = findViewById(R.id.bt_run);
         recyclerView = findViewById(R.id.rv);
 
         PermissionUtils.permission(Manifest.permission.ACCESS_WIFI_STATE).callback(new PermissionUtils.SingleCallback() {
@@ -43,31 +46,38 @@ public class ClientActivity extends AppCompatActivity {
                 if (isAllGranted){
                     String wifi = NetworkUtils.getIpAddressByWifi();
                     String ip = NetworkUtils.getIPAddress(true);
-                    textView.setText("wifi = " + wifi + "\nip = " + ip);
+                    textView.setText("wifi = " + wifi + "\nip = " + ip + (result ? " 本地启动成功" : " 本地启动失败"));
                 }
             }
         }).request();
-
-        textView.setOnClickListener(view -> textView.setBackgroundColor(ClientActivity.this.getResources().getColor(R.color.design_default_color_error)));
     }
 
     @Override
     protected void onStart() {
         super.onStart();
 
-        button.setOnClickListener(view -> new Thread(() -> {
-            try {
-                adbConnection.open("shell:" + editText.getText().toString());
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }).start());
-
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         RVAdapter adapter = new RVAdapter();
         recyclerView.setAdapter(adapter);
+
+        try {
+            AdbCrypto crypto = AdbCrypto.generateAdbKeyPair(data -> Base64.encodeToString(data, Base64.NO_WRAP));
+
+            adbConnection = AdbConnection.create(new Socket("127.0.0.1", 5555), crypto);
+            result = adbConnection.connect();
+
+            if (!result){
+                return;
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+                startForegroundService(new Intent(this, KeepAliveService.class));
+            }else {
+                startService(new Intent(this, KeepAliveService.class));
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     @Override
