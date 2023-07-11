@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import com.blankj.utilcode.util.ThreadUtils;
 
 import adb.gambler.adbapplication.R;
+import adb.gambler.adbapplication.manager.ScriptManager;
 import adb.gambler.jadb.lib.AdbConnection;
 
 /**
@@ -42,6 +43,7 @@ public class ControlView extends View{
 		rootView = (ViewGroup) LayoutInflater.from(context).inflate(R.layout.view_control, null);
 		rootView.addView(this);
 		init();
+		initScript();
 	}
 
 	public View getView(){
@@ -113,6 +115,11 @@ public class ControlView extends View{
 				return true;
 			}
 		});
+	}
+
+	private void initScript(){
+		ScriptManager manager = new ScriptManager();
+		manager.run(connection);
 	}
 
 	@Override
