@@ -28,6 +28,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".ClientActivity" />
+
+        <service android:name=".service.KeepAliveService"/>
     </application>
 
 </manifest>

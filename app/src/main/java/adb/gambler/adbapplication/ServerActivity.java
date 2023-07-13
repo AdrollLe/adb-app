@@ -1,27 +1,23 @@
 package adb.gambler.adbapplication;
 
-import android.Manifest;
 import android.os.Bundle;
 import android.util.Base64;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.blankj.utilcode.util.KeyboardUtils;
-import com.blankj.utilcode.util.NetworkUtils;
-import com.blankj.utilcode.util.PermissionUtils;
 import com.blankj.utilcode.util.StringUtils;
 import com.blankj.utilcode.util.ThreadUtils;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.Socket;
-import java.util.List;
 
 import adb.gambler.adbapplication.manager.CommandManager;
+import adb.gambler.adbapplication.manager.ConstantManager;
 import adb.gambler.adbapplication.view.ControlView;
 import adb.gambler.jadb.lib.AdbConnection;
 import adb.gambler.jadb.lib.AdbCrypto;
@@ -36,8 +32,6 @@ public class ServerActivity extends AppCompatActivity {
 	private CountDownThread countDownThread;
 	private ControlView controlView;
 
-	private String wifi, ip;
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -47,24 +41,14 @@ public class ServerActivity extends AppCompatActivity {
 		tvContent = findViewById(R.id.server_tv_text);
 		tvConnect = findViewById(R.id.server_tv_connect);
 
-		PermissionUtils.permission(Manifest.permission.ACCESS_WIFI_STATE).callback(new PermissionUtils.SingleCallback() {
-			@Override
-			public void callback(boolean isAllGranted, @NonNull List<String> granted, @NonNull List<String> deniedForever, @NonNull List<String> denied) {
-				if (isAllGranted){
-					wifi = NetworkUtils.getIpAddressByWifi();
-					ip = NetworkUtils.getIPAddress(true);
-				}
-			}
-		}).request();
-
 		tvConnect.setOnClickListener(view -> ThreadUtils.getSinglePool().execute(() -> {
 			String connectIP = editText.getText().toString();
-			if (StringUtils.isEmpty(wifi)){
+			if (StringUtils.isEmpty(ConstantManager.getWifi())){
 
 				return;
 			}
 
-			String[] t1 = wifi.split(".");
+			String[] t1 = ConstantManager.getWifi().split(".");
 			String[] t2 = connectIP.split(".");
 			if (t1[0].equals(t2[0]) && t1[1].equals(t2[1])){
 				connectToLAN(connectIP);

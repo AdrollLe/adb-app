@@ -1,24 +1,23 @@
 package adb.gambler.adbapplication;
 
-import android.Manifest;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Base64;
+import android.view.WindowManager;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.PermissionUtils;
+import com.blankj.utilcode.util.ThreadUtils;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.List;
 
+import adb.gambler.adbapplication.manager.ConstantManager;
 import adb.gambler.adbapplication.service.KeepAliveService;
 import adb.gambler.adbapplication.view.RVAdapter;
 import adb.gambler.jadb.lib.AdbConnection;
@@ -31,25 +30,12 @@ public class ClientActivity extends AppCompatActivity {
 
     private AdbConnection adbConnection;
 
-    private boolean result = false;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_client);
         textView = findViewById(R.id.tv_info);
         recyclerView = findViewById(R.id.rv);
-
-        PermissionUtils.permission(Manifest.permission.ACCESS_WIFI_STATE).callback(new PermissionUtils.SingleCallback() {
-            @Override
-            public void callback(boolean isAllGranted, @NonNull List<String> granted, @NonNull List<String> deniedForever, @NonNull List<String> denied) {
-                if (isAllGranted){
-                    String wifi = NetworkUtils.getIpAddressByWifi();
-                    String ip = NetworkUtils.getIPAddress(true);
-                    textView.setText("wifi = " + wifi + "\nip = " + ip + (result ? " 本地启动成功" : " 本地启动失败"));
-                }
-            }
-        }).request();
     }
 
     @Override
@@ -60,23 +46,41 @@ public class ClientActivity extends AppCompatActivity {
         RVAdapter adapter = new RVAdapter();
         recyclerView.setAdapter(adapter);
 
-        try {
-            AdbCrypto crypto = AdbCrypto.generateAdbKeyPair(data -> Base64.encodeToString(data, Base64.NO_WRAP));
+        ThreadUtils.getSinglePool().execute(() -> {
+            try {
+                AdbCrypto crypto = AdbCrypto.generateAdbKeyPair(data -> Base64.encodeToString(data, Base64.NO_WRAP));
 
-            adbConnection = AdbConnection.create(new Socket("127.0.0.1", 5555), crypto);
-            result = adbConnection.connect();
+                adbConnection = AdbConnection.create(new Socket("127.0.0.1", 5555), crypto);
+                boolean result = adbConnection.connect();
 
-            if (!result){
-                return;
+                if (!result){
+                    textView.setText("wifi = " + ConstantManager.getWifi());
+                }else {
+                    textView.setText("wifi = " + ConstantManager.getWifi() + "\nip = " + ConstantManager.getIp() + " 本地启动成功");
+                }
+            }catch (Exception e){
+                textView.setText(e.getMessage());
+                e.printStackTrace();
             }
+        });
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-                startForegroundService(new Intent(this, KeepAliveService.class));
-            }else {
-                startService(new Intent(this, KeepAliveService.class));
-            }
-        }catch (Exception e){
-            e.printStackTrace();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            PermissionUtils.requestDrawOverlays(new PermissionUtils.SimpleCallback() {
+                @Override
+                public void onGranted() {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+                        startForegroundService(new Intent(ClientActivity.this, KeepAliveService.class));
+                    }else {
+                        getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                        startService(new Intent(ClientActivity.this, KeepAliveService.class));
+                    }
+                }
+
+                @Override
+                public void onDenied() {
+
+                }
+            });
         }
     }
 
