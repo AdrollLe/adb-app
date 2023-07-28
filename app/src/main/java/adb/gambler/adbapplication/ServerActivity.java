@@ -21,39 +21,51 @@ import adb.gambler.adbapplication.manager.ConstantManager;
 import adb.gambler.adbapplication.view.ControlView;
 import adb.gambler.jadb.lib.AdbConnection;
 import adb.gambler.jadb.lib.AdbCrypto;
+import adb.gambler.video.play.RemotePlayer;
+import adb.gambler.video.websocket.PlayerListener;
+import adb.gambler.video.websocket.RemoteManager;
 
 public class ServerActivity extends AppCompatActivity {
 
 	private AdbConnection adbConnection;
 
-	private EditText editText;
+	private EditText etIp, etPort;
 	private TextView tvContent, tvConnect;
 
 	private CountDownThread countDownThread;
 	private ControlView controlView;
+	private RemotePlayer remotePlayer;
+
+	private boolean isWeb = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_server);
 
-		editText = findViewById(R.id.server_et);
+		etIp = findViewById(R.id.server_et_ip);
+		etPort = findViewById(R.id.server_et_port);
 		tvContent = findViewById(R.id.server_tv_text);
 		tvConnect = findViewById(R.id.server_tv_connect);
 
 		tvConnect.setOnClickListener(view -> ThreadUtils.getSinglePool().execute(() -> {
-			String connectIP = editText.getText().toString();
-			if (StringUtils.isEmpty(ConstantManager.getWifi())){
+			if (!StringUtils.isEmpty(etPort.getText().toString())){
+				isWeb = true;
+				RemoteManager.initClient(etIp.getText().toString(), etPort.getText().toString(), new PlayerListener() {
+					@Override
+					public void start() {
+						remotePlayer = new RemotePlayer(ServerActivity.this);
+						countDownThread.start();
+					}
 
-				return;
-			}
-
-			String[] t1 = ConstantManager.getWifi().split(".");
-			String[] t2 = connectIP.split(".");
-			if (t1[0].equals(t2[0]) && t1[1].equals(t2[1])){
-				connectToLAN(connectIP);
+					@Override
+					public void play(com.google.android.exoplayer2.source.MediaSource source) {
+						remotePlayer.play(source);
+					}
+				});
+				RemoteManager.send2Server("on ready".getBytes());
 			}else {
-
+				connectToLan(etIp.getText().toString());
 			}
 		}));
 	}
@@ -72,10 +84,15 @@ public class ServerActivity extends AppCompatActivity {
 		destroyConnection();
 	}
 
-	private void connectToLAN(String connectIP){
+	/**
+	 * 局域网连接
+	 * @param connectIP 局域网ip
+	 */
+	private void connectToLan(String connectIP){
 		try {
 			if (adbConnection == null){
 				KeyboardUtils.hideSoftInput(ServerActivity.this);
+				// adb连接client
 				AdbCrypto crypto = AdbCrypto.generateAdbKeyPair(data -> Base64.encodeToString(data, Base64.NO_WRAP));
 
 				adbConnection = AdbConnection.create(new Socket(connectIP, 5555), crypto);
@@ -135,11 +152,19 @@ public class ServerActivity extends AppCompatActivity {
 
 			ThreadUtils.getMainHandler().post(() -> {
 				try {
-					weakReference.get().adbConnection.open(CommandManager.COMMAND_HOME);
+					// 将client的app推到后台
+					if (!weakReference.get().isWeb){
+						weakReference.get().adbConnection.open(CommandManager.COMMAND_HOME);
+					}
 				} catch (IOException | InterruptedException e) {
 					e.printStackTrace();
 				}
-				((ViewGroup)weakReference.get().findViewById(android.R.id.content)).addView(weakReference.get().controlView.getView());
+
+				if (weakReference.get().isWeb){
+					((ViewGroup)weakReference.get().findViewById(android.R.id.content)).addView(weakReference.get().controlView.getView());
+				}else {
+					((ViewGroup)weakReference.get().findViewById(android.R.id.content)).addView(weakReference.get().remotePlayer);
+				}
 			});
 		}
 	}

@@ -1,5 +1,5 @@
 plugins {
-    id 'com.android.application'
+    id 'com.android.library'
 }
 
 android {
@@ -7,7 +7,6 @@ android {
     buildToolsVersion "29.0.3"
 
     defaultConfig {
-        applicationId "adb.gambler.adbapplication"
         minSdkVersion 21
         targetSdkVersion 32
         versionCode 1
@@ -15,6 +14,7 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+
 
     buildTypes {
         release {
@@ -32,10 +32,8 @@ dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.4.1'
     implementation 'com.google.android.material:material:1.1.0'
-    testImplementation 'junit:junit:4.+'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
-    implementation(project(":jadb"))
-    implementation(project(":video"))
+    implementation 'com.blankj:utilcodex:1.31.0'
+    api 'com.google.android.exoplayer:exoplayer-core:2.17.1'
+    api 'com.google.android.exoplayer:exoplayer-ui:2.17.1'
 }

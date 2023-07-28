@@ -1,3 +1,4 @@
 rootProject.name = "ADB Application"
 include ':jadb'
 include ':app'
+include ':video'

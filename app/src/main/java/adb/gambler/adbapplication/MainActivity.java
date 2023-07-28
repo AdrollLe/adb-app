@@ -1,19 +1,22 @@
 package adb.gambler.adbapplication;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.Manifest;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import com.blankj.utilcode.util.NetworkUtils;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.blankj.utilcode.util.PermissionUtils;
+import com.blankj.utilcode.util.StringUtils;
+import com.blankj.utilcode.util.ThreadUtils;
+import com.blankj.utilcode.util.ToastUtils;
 
 import java.util.List;
 
 import adb.gambler.adbapplication.manager.ConstantManager;
+import adb.gambler.adbapplication.utils.NetworkUtils;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -32,6 +35,10 @@ public class MainActivity extends AppCompatActivity {
 		findViewById(R.id.main_tv_control).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
+				if (StringUtils.isEmpty(ConstantManager.getWifi()) || StringUtils.isEmpty(ConstantManager.getIp())){
+					ToastUtils.showLong("应用正在初始化，请稍后再试！");
+					return;
+				}
 				startActivity(new Intent(MainActivity.this, ClientActivity.class));
 			}
 		});
@@ -40,11 +47,16 @@ public class MainActivity extends AppCompatActivity {
 			@Override
 			public void callback(boolean isAllGranted, @NonNull List<String> granted, @NonNull List<String> deniedForever, @NonNull List<String> denied) {
 				if (isAllGranted){
-					String wifi = NetworkUtils.getIpAddressByWifi();
-					String ip = NetworkUtils.getIPAddress(true);
+					ThreadUtils.getCachedPool().execute(new Runnable() {
+						@Override
+						public void run() {
+							String wifi = com.blankj.utilcode.util.NetworkUtils.getIpAddressByWifi();
+							String ip = NetworkUtils.getHostIp();
 
-					ConstantManager.setWifi(wifi);
-					ConstantManager.setIp(ip);
+							ConstantManager.setWifi(wifi);
+							ConstantManager.setIp(ip);
+						}
+					});
 				}
 			}
 		}).request();

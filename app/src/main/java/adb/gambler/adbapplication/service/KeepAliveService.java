@@ -1,5 +1,6 @@
 package adb.gambler.adbapplication.service;
 
+import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
 import android.graphics.PixelFormat;
@@ -10,6 +11,10 @@ import android.view.View;
 import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
+
+import com.blankj.utilcode.util.NotificationUtils;
+import com.blankj.utilcode.util.Utils;
 
 import adb.gambler.adbapplication.R;
 
@@ -35,6 +40,15 @@ public class KeepAliveService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        NotificationUtils.ChannelConfig channelConfig = new NotificationUtils.ChannelConfig("remote_service", "远程控制服务", NotificationUtils.IMPORTANCE_DEFAULT);
+        Notification notification = NotificationUtils.getNotification(channelConfig, new Utils.Consumer<NotificationCompat.Builder>() {
+            @Override
+            public void accept(NotificationCompat.Builder builder) {
+
+            }
+        });
+        startForeground(11, notification);
 
         mFloatingView = LayoutInflater.from(this).inflate(R.layout.view_floating_widget, null);
 
