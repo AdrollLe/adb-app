@@ -2,6 +2,8 @@ package adb.gambler.video.websocket;
 
 import com.blankj.utilcode.util.SPUtils;
 
+import java.net.URI;
+
 /**
  * <p> File description: <p>
  * <p> Creator: Gambler   <p>
@@ -37,8 +39,8 @@ public class RemoteManager {
 		return port;
 	}
 
-	public static void initClient(String ip, String port, PlayerListener listener){
-		client = new RemoteClient(ip, Integer.parseInt(port), listener);
+	public static void initClient(String ip, PlayerListener listener){
+		client = new RemoteClient(URI.create(ip), listener);
 	}
 
 	public static void send2Client(byte[] data){

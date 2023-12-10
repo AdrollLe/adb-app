@@ -1,15 +1,10 @@
 package adb.gambler.video.websocket;
 
-import com.blankj.utilcode.util.ConvertUtils;
-import com.blankj.utilcode.util.ToastUtils;
+import org.java_websocket.WebSocket;
+import org.java_websocket.handshake.ClientHandshake;
+import org.java_websocket.server.WebSocketServer;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.lang.ref.WeakReference;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.List;
+import java.net.InetSocketAddress;
 
 /**
  * <p> File description: <p>
@@ -19,99 +14,46 @@ import java.util.List;
  * Thinking is more important than coding. *
  * * * * * * * * * * * * * * * * * * * * * *
  */
-public class RemoteServer extends ServerSocket {
+public class RemoteServer extends WebSocketServer {
 
 	private ADBCommandListener listener;
-	private Socket linkedSocket;
+	private WebSocket client;
 
-	public RemoteServer(int port, ADBCommandListener listener) throws IOException {
-		super(port);
+	public RemoteServer(int port, ADBCommandListener listener) {
+		super(new InetSocketAddress(port));
 		this.listener = listener;
+		start();
 	}
 
 	@Override
-	public Socket accept() throws IOException {
-		ToastUtils.showLong("已连接新client");
-		if (linkedSocket == null){
-			linkedSocket = super.accept();
-			LocalThread localThread = new LocalThread(this);
-			localThread.start();
-		}
-
-		return linkedSocket;
-	}
-
-	public void broadcast(byte[] data){
-		if (linkedSocket == null || !linkedSocket.isConnected()){
-			return;
-		}
-
-		OutputStream outputStream = null;
-		try {
-			outputStream = linkedSocket.getOutputStream();
-			outputStream.write(data);
-			outputStream.flush();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}finally {
-			try {
-				if (outputStream != null){
-					outputStream.close();
-				}
-			}catch (IOException e){
-				e.printStackTrace();
-			}
+	public void onOpen(WebSocket conn, ClientHandshake handshake) {
+		if (client == null){
+			client = conn;
+			listener.start();
 		}
 	}
 
-	private static class LocalThread extends Thread {
+	@Override
+	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
 
-		private WeakReference<RemoteServer> weakReference;
+	}
 
-		public LocalThread(RemoteServer context){
-			weakReference = new WeakReference<>(context);
+	@Override
+	public void onMessage(WebSocket conn, String message) {
+		if ("on ready".equals(message)){
+			broadcast("start");
+		}else if (message.contains("shell:input")){
+			listener.sendCommand(message);
 		}
+	}
 
-		@Override
-		public void run() {
-			super.run();
+	@Override
+	public void onError(WebSocket conn, Exception ex) {
 
-			while (weakReference.get().linkedSocket.isConnected() && weakReference.get().isClosed()){
-				InputStream inputStream = null;
-				OutputStream outputStream = null;
+	}
 
-				try {
-					inputStream = weakReference.get().linkedSocket.getInputStream();
-					outputStream = weakReference.get().linkedSocket.getOutputStream();
+	@Override
+	public void onStart() {
 
-					List<String> isList = ConvertUtils.inputStream2Lines(inputStream);
-					for (String s : isList){
-						if ("on ready".equals(s)){
-							outputStream.write("start".getBytes());
-							outputStream.flush();
-						}else if (s.contains("shell:input")){
-							weakReference.get().listener.sendCommand(s);
-						}
-					}
-				}catch (Exception e){
-					e.printStackTrace();
-				}finally {
-					try {
-						if (inputStream != null){
-							inputStream.close();
-						}
-						if (outputStream != null){
-							outputStream.close();
-						}
-					}catch (IOException e){
-						e.printStackTrace();
-					}
-				}
-			}
-
-			if (weakReference.get().linkedSocket != null){
-				weakReference.get().linkedSocket = null;
-			}
-		}
 	}
 }

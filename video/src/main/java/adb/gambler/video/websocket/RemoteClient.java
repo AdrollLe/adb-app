@@ -1,18 +1,23 @@
 package adb.gambler.video.websocket;
 
-import com.blankj.utilcode.util.ConvertUtils;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+
+import androidx.annotation.NonNull;
+
+import com.blankj.utilcode.util.ThreadUtils;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.upstream.DataSource;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
+
 import java.lang.ref.WeakReference;
-import java.net.Socket;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
+import java.net.URI;
+import java.nio.ByteBuffer;
 
 import adb.gambler.video.play.ByteArrayDataSource;
 
@@ -24,97 +29,98 @@ import adb.gambler.video.play.ByteArrayDataSource;
  * Thinking is more important than coding. *
  * * * * * * * * * * * * * * * * * * * * * *
  */
-public class RemoteClient {
+public class RemoteClient extends WebSocketClient {
 
     private int failCount = 0;
 
-    private Socket socket;
+    private LocalHandler handler;
     private PlayerListener listener;
 
-    private String url;
-    private int port;
+    public RemoteClient(URI serverUri, PlayerListener listener) {
+        super(serverUri);
 
-    public RemoteClient(String url, int port, PlayerListener listener) {
-        this.url = url;
-        this.port = port;
         this.listener = listener;
 
-        connect();
+        ThreadUtils.getCachedPool().execute(() -> {
+            Looper.prepare();
+            handler = new LocalHandler(RemoteClient.this);
+            Looper.loop();
+        });
     }
 
-    public void send(byte[] data){
-        if (socket == null || !socket.isConnected()){
-            return;
-        }
+    @Override
+    public void onOpen(ServerHandshake handshakedata) {
+        failCount = 0;
+        send("on ready");
+    }
 
-        OutputStream outputStream = null;
-        try {
-            outputStream = socket.getOutputStream();
-            outputStream.write(data);
-            outputStream.flush();
-        }catch (IOException e){
-            e.printStackTrace();
-        }finally {
+    @Override
+    public void onMessage(String message) {
+        if ("start".equals(message)){
+            handler.sendEmptyMessage(2);
+        }
+    }
+
+    @Override
+    public void onMessage(ByteBuffer bytes) {
+        super.onMessage(bytes);
+
+        Message message = Message.obtain();
+        message.what = 0;
+        message.obj = bytes;
+        handler.sendMessage(message);
+    }
+
+    @Override
+    public void onClose(int code, String reason, boolean remote) {
+        if (++failCount < 3){
             try {
-                if (outputStream != null){
-                    outputStream.close();
-                }
-            }catch (IOException e){
+                Thread.sleep(3000);
+                handler.sendEmptyMessage(3);
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    private void connect(){
-        try {
-            socket = new Socket(url, port);
-            LocalThread localThread = new LocalThread(this);
-            localThread.start();
-            listener.start();
-        } catch (IOException e) {
-            onFail();
+    @Override
+    public void onError(Exception ex) {
+        if (++failCount < 3){
+            try {
+                Thread.sleep(3000);
+                handler.sendEmptyMessage(3);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    private static class LocalThread extends Thread{
+    private static class LocalHandler extends Handler {
 
         private WeakReference<RemoteClient> weakReference;
 
-        public LocalThread(RemoteClient client){
+        public LocalHandler(RemoteClient client){
             weakReference = new WeakReference<>(client);
+            sendEmptyMessage(1);
         }
 
         @Override
-        public void run() {
-            super.run();
+        public void handleMessage(@NonNull Message msg) {
+            super.handleMessage(msg);
 
-            try {
-                OutputStream outputStream = weakReference.get().socket.getOutputStream();
-                outputStream.write("on ready".getBytes());
-
-            }catch (IOException e){
-                e.printStackTrace();
-            }
-
-            boolean init = false;
-            while (weakReference.get().socket.isConnected() && weakReference.get().socket.isClosed()){
-                InputStream inputStream = null;
-                try {
-                    inputStream = weakReference.get().socket.getInputStream();
-
-                    if (!init){
-                        List<String> list = ConvertUtils.inputStream2Lines(inputStream);
-                        for (String s : list){
-                            if ("start".equals(s)){
-                                init = true;
-                                break;
-                            }
-                        }
-
-                        continue;
-                    }
-
-                    byte[] data = ConvertUtils.inputStream2Bytes(inputStream);
+            switch (msg.what){
+                case 1:
+                    weakReference.get().connect();
+                    break;
+                case 2:
+                    weakReference.get().listener.start();
+                    break;
+                case 3:
+                    weakReference.get().reconnect();
+                    break;
+                default:
+                    ByteBuffer bytes = (ByteBuffer) msg.obj;
+                    byte[] data = bytes.array();
                     DataSource.Factory factory = new DataSource.Factory() {
                         @Override
                         public DataSource createDataSource() {
@@ -124,29 +130,7 @@ public class RemoteClient {
 
                     MediaSource mediaSource = new ProgressiveMediaSource.Factory(factory).createMediaSource(new MediaItem.Builder().build());
                     weakReference.get().listener.play(mediaSource);
-
-                }catch (Exception e){
-                    e.printStackTrace();
-                }finally {
-                    try {
-                        if (inputStream != null){
-                            inputStream.close();
-                        }
-                    }catch (IOException e){
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-    }
-
-    public void onFail() {
-        if (++failCount < 3){
-            try {
-                Thread.sleep(3000);
-                connect();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+                    break;
             }
         }
     }

@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.blankj.utilcode.util.KeyboardUtils;
 import com.blankj.utilcode.util.StringUtils;
 import com.blankj.utilcode.util.ThreadUtils;
+import com.blankj.utilcode.util.ToastUtils;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -48,10 +49,19 @@ public class ServerActivity extends AppCompatActivity {
 		tvContent = findViewById(R.id.server_tv_text);
 		tvConnect = findViewById(R.id.server_tv_connect);
 
-		tvConnect.setOnClickListener(view -> ThreadUtils.getSinglePool().execute(() -> {
-			if (!StringUtils.isEmpty(etPort.getText().toString())){
-				isWeb = true;
-				RemoteManager.initClient(etIp.getText().toString(), etPort.getText().toString(), new PlayerListener() {
+		tvConnect.setOnClickListener(view -> {
+			if (StringUtils.isEmpty(etIp.getText().toString())){
+				return ;
+			}else if (StringUtils.isEmpty(ConstantManager.getWifi())){
+				ToastUtils.showLong("正在初始化，请稍等");
+				return ;
+			}
+
+			String[] array1 = ConstantManager.getWifi().split("\\.");
+			String[] array2 = etIp.getText().toString().split("\\.");
+//			if (!array1[0].equals(array2[0]) || !array1[1].equals(array2[1])){
+//				isWeb = true;
+				RemoteManager.initClient("ws://" + etIp.getText().toString() + ":" + etPort.getText().toString(), new PlayerListener() {
 					@Override
 					public void start() {
 						remotePlayer = new RemotePlayer(ServerActivity.this);
@@ -63,11 +73,10 @@ public class ServerActivity extends AppCompatActivity {
 						remotePlayer.play(source);
 					}
 				});
-				RemoteManager.send2Server("on ready".getBytes());
-			}else {
-				connectToLan(etIp.getText().toString());
-			}
-		}));
+//			}else {
+//				ThreadUtils.getCachedPool().execute(() -> connectToLan(etIp.getText().toString()));
+//			}
+		});
 	}
 
 	@Override
@@ -150,16 +159,16 @@ public class ServerActivity extends AppCompatActivity {
 				}
 			}
 
-			ThreadUtils.getMainHandler().post(() -> {
-				try {
-					// 将client的app推到后台
-					if (!weakReference.get().isWeb){
-						weakReference.get().adbConnection.open(CommandManager.COMMAND_HOME);
-					}
-				} catch (IOException | InterruptedException e) {
-					e.printStackTrace();
+			try {
+				// 将client的app推到后台
+				if (!weakReference.get().isWeb){
+					weakReference.get().adbConnection.open(CommandManager.COMMAND_HOME);
 				}
+			} catch (IOException | InterruptedException e) {
+				e.printStackTrace();
+			}
 
+			ThreadUtils.getMainHandler().post(() -> {
 				if (weakReference.get().isWeb){
 					((ViewGroup)weakReference.get().findViewById(android.R.id.content)).addView(weakReference.get().controlView.getView());
 				}else {

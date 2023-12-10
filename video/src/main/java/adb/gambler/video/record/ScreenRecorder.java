@@ -40,6 +40,10 @@ public class ScreenRecorder implements ForResultCallBack{
 
     public ScreenRecorder(Context context){
         this.context = context;
+
+        mediaProjectionManager = (MediaProjectionManager) context.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+        Intent intent = mediaProjectionManager.createScreenCaptureIntent();
+        ((Activity)context).startActivityForResult(intent, 1001);
     }
 
     private void init(){
@@ -84,7 +88,6 @@ public class ScreenRecorder implements ForResultCallBack{
 
     @Override
     public void requestForResult(int code, Intent intent) {
-        mediaProjectionManager = (MediaProjectionManager) context.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
         mediaProjection = mediaProjectionManager.getMediaProjection(REQUEST_CODE, intent);
         init();
     }
