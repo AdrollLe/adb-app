@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.blankj.utilcode.util.KeyboardUtils;
 import com.blankj.utilcode.util.ThreadUtils;
+import com.blankj.utilcode.util.ToastUtils;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -47,13 +48,14 @@ public class ServerActivity extends AppCompatActivity {
 					adbConnection = AdbConnection.create(new Socket(editText.getText().toString(), 5555), crypto);
 					boolean result = adbConnection.connect();
 					if (result){
-						tvConnect.setText("断开连接");
-						tvContent.setText("连接成功，将在3秒后镜像");
+						ThreadUtils.getMainHandler().post(() -> {
+							tvConnect.setText("断开连接");
+							tvContent.setText("连接成功，将在3秒后镜像");
+						});
 
 						countDownThread.start();
+						controlView = new ControlView(this, adbConnection);
 					}
-
-					controlView = new ControlView(this, adbConnection);
 				}else {
 					tvConnect.setText("连接");
 					countDownThread.interrupt();
@@ -108,7 +110,7 @@ public class ServerActivity extends AppCompatActivity {
 				try {
 					Thread.sleep(1000);
 					count--;
-					weakReference.get().tvContent.setText("连接成功，将在" + count + "秒后镜像");
+//					weakReference.get().tvContent.setText("连接成功，将在" + count + "秒后镜像");
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}

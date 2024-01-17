@@ -14,41 +14,47 @@ import adb.gambler.jadb.lib.AdbConnection;
  */
 public class ScriptManager {
 
-	private volatile int num = 8;
-
 	public void run(AdbConnection connection){
 		ThreadUtils.getSinglePool().execute(new Runnable() {
 			@Override
 			public void run() {
 				while (true){
-					if (num > 14){
-						num = 8;
-					}else {
-						num++;
-					}
-
 					try {
+						Thread.sleep(5000);
+						connection.open("shell:input tap 354 103");
+						Thread.sleep(1000);
+						connection.open("shell:input tap 360 110");
+
+						Thread.sleep(5000);
+						connection.open("shell:input tap 567 305");
 						Thread.sleep(3000);
-						connection.open("shell:input tap 116 272");
+						connection.open("shell:input tap 520 305");
+						Thread.sleep(1000);
+						connection.open("shell:input tap 535 305");
 
-						Thread.sleep(4000);
-						connection.open("shell:input tap 791 720");
+						Thread.sleep(3000);
+						connection.open("shell:input text \"15513742955\"");
 
-						Thread.sleep(4000);
-						connection.open("shell:input tap 478 451");
-
-						Thread.sleep(2000);
-						connection.open("shell:input tap 1248 637");
-						connection.open("shell:input tap 1248 637");
+						Thread.sleep(3000);
+						connection.open("shell:input tap 583 398");
 
 						Thread.sleep(1000);
-						connection.open("shell:input keyevent " + num);
+						connection.open("shell:input text \"dupeng123\"");
 
-						Thread.sleep(1500);
+						Thread.sleep(1000);
 						connection.open("shell:input keyevent 4");
 
-						Thread.sleep(300);
-						connection.open("shell:input tap 893 734");
+						Thread.sleep(1000);
+						connection.open("shell:input tap 388 464");
+
+						Thread.sleep(1000);
+						connection.open("shell:input tap 655 546");
+
+						Thread.sleep(3000);
+						connection.open("shell:input tap 655 546");
+
+						Thread.sleep(30000);
+						connection.open("shell:input tap 1346 600");
 					}catch (Exception e){
 						e.printStackTrace();
 					}
