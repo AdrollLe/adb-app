@@ -3,6 +3,7 @@ package adb.gambler.video.websocket;
 import com.blankj.utilcode.util.SPUtils;
 
 import java.net.URI;
+import java.nio.ByteBuffer;
 
 /**
  * <p> File description: <p>
@@ -40,14 +41,26 @@ public class RemoteManager {
 	}
 
 	public static void initClient(String ip, PlayerListener listener){
+		if (client != null){
+			client.destroy();
+		}
+
 		client = new RemoteClient(URI.create(ip), listener);
 	}
 
-	public static void send2Client(byte[] data){
+	public static void send2Client(ByteBuffer data){
+		if (server == null){
+			return;
+		}
+
 		server.broadcast(data);
 	}
 
 	public static void send2Server(byte[] data){
+		if (client == null){
+			return;
+		}
+
 		client.send(data);
 	}
 }

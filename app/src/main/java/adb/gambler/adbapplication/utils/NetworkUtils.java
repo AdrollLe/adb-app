@@ -22,6 +22,7 @@ public class NetworkUtils {
         URL url;
         HttpURLConnection connection;
         try {
+            // TODO: 2024/2/19 amazon在某些设备无法发送请求
             url = new URL("https://checkip.amazonaws.com/");
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");

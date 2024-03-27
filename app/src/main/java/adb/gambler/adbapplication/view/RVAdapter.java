@@ -6,6 +6,11 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.blankj.utilcode.util.ThreadUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import adb.gambler.adbapplication.R;
 
 /**
@@ -18,6 +23,8 @@ import adb.gambler.adbapplication.R;
  */
 public class RVAdapter extends RecyclerView.Adapter<RVViewHolder> {
 
+    private List<String> msgList = new ArrayList<>();
+
     @NonNull
     @Override
     public RVViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -26,11 +33,16 @@ public class RVAdapter extends RecyclerView.Adapter<RVViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull RVViewHolder holder, int position) {
-        holder.update(position);
+        holder.update(msgList.get(position));
     }
 
     @Override
     public int getItemCount() {
-        return 10000;
+        return msgList.size();
+    }
+
+    public void addMsg(String msg){
+        msgList.add(msg);
+        notifyItemInserted(msgList.size() - 1);
     }
 }

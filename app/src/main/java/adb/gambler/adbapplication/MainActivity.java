@@ -43,21 +43,15 @@ public class MainActivity extends AppCompatActivity {
 			}
 		});
 
-		PermissionUtils.permission(Manifest.permission.ACCESS_WIFI_STATE).callback(new PermissionUtils.SingleCallback() {
-			@Override
-			public void callback(boolean isAllGranted, @NonNull List<String> granted, @NonNull List<String> deniedForever, @NonNull List<String> denied) {
-				if (isAllGranted){
-					ThreadUtils.getCachedPool().execute(new Runnable() {
-						@Override
-						public void run() {
-							String wifi = com.blankj.utilcode.util.NetworkUtils.getIpAddressByWifi();
-							String ip = NetworkUtils.getHostIp();
+		PermissionUtils.permission(Manifest.permission.ACCESS_WIFI_STATE).callback((isAllGranted, granted, deniedForever, denied) -> {
+			if (isAllGranted){
+				ThreadUtils.getCachedPool().execute(() -> {
+					String wifi = com.blankj.utilcode.util.NetworkUtils.getIpAddressByWifi();
+					String ip = NetworkUtils.getHostIp();
 
-							ConstantManager.setWifi(wifi);
-							ConstantManager.setIp(ip);
-						}
-					});
-				}
+					ConstantManager.setWifi(wifi);
+					ConstantManager.setIp(ip);
+				});
 			}
 		}).request();
 	}

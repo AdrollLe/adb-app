@@ -52,13 +52,14 @@ public class ServerActivity extends AppCompatActivity {
 		tvConnect.setOnClickListener(view -> {
 			if (StringUtils.isEmpty(etIp.getText().toString())){
 				return ;
-			}else if (StringUtils.isEmpty(ConstantManager.getWifi())){
-				ToastUtils.showLong("正在初始化，请稍等");
-				return ;
 			}
+//			else if (StringUtils.isEmpty(ConstantManager.getWifi())){
+//				ToastUtils.showLong("正在初始化，请稍等");
+//				return ;
+//			}
 
-			String[] array1 = ConstantManager.getWifi().split("\\.");
-			String[] array2 = etIp.getText().toString().split("\\.");
+//			String[] array1 = ConstantManager.getWifi().split("\\.");
+//			String[] array2 = etIp.getText().toString().split("\\.");
 //			if (!array1[0].equals(array2[0]) || !array1[1].equals(array2[1])){
 //				isWeb = true;
 				RemoteManager.initClient("ws://" + etIp.getText().toString() + ":" + etPort.getText().toString(), new PlayerListener() {
@@ -70,6 +71,9 @@ public class ServerActivity extends AppCompatActivity {
 
 					@Override
 					public void play(com.google.android.exoplayer2.source.MediaSource source) {
+						if (remotePlayer == null){
+							return;
+						}
 						remotePlayer.play(source);
 					}
 				});
@@ -153,7 +157,7 @@ public class ServerActivity extends AppCompatActivity {
 				try {
 					Thread.sleep(1000);
 					count--;
-					weakReference.get().tvContent.setText("连接成功，将在" + count + "秒后镜像");
+					ThreadUtils.getMainHandler().post(() -> weakReference.get().tvContent.setText("连接成功，将在" + count + "秒后镜像"));
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -161,7 +165,7 @@ public class ServerActivity extends AppCompatActivity {
 
 			try {
 				// 将client的app推到后台
-				if (!weakReference.get().isWeb){
+				if (weakReference.get().isWeb){
 					weakReference.get().adbConnection.open(CommandManager.COMMAND_HOME);
 				}
 			} catch (IOException | InterruptedException e) {

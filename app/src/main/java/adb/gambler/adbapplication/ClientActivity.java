@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.blankj.utilcode.util.PermissionUtils;
 import com.blankj.utilcode.util.ThreadUtils;
+import com.blankj.utilcode.util.ToastUtils;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -30,6 +31,7 @@ public class ClientActivity extends AppCompatActivity {
 
     private TextView textView;
     private RecyclerView recyclerView;
+    private RVAdapter adapter;
 
     private AdbConnection adbConnection;
     private ScreenRecorder recorder;
@@ -47,7 +49,7 @@ public class ClientActivity extends AppCompatActivity {
         super.onStart();
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
-        RVAdapter adapter = new RVAdapter();
+        adapter = new RVAdapter();
         recyclerView.setAdapter(adapter);
 
         ThreadUtils.getSinglePool().execute(() -> {
@@ -55,6 +57,7 @@ public class ClientActivity extends AppCompatActivity {
                 @Override
                 public void sendCommand(String command) {
                     try {
+                        adapter.addMsg("send = " + command);
                         adbConnection.open(command);
                     } catch (IOException | InterruptedException e) {
                         e.printStackTrace();
@@ -74,6 +77,7 @@ public class ClientActivity extends AppCompatActivity {
                             // 开启录屏
                             recorder = new ScreenRecorder(ClientActivity.this);
                             recorder.start();
+                            adapter.addMsg("connect = success");
                         }
                     }catch (Exception e){
                         textView.setText(e.getMessage());
@@ -83,6 +87,9 @@ public class ClientActivity extends AppCompatActivity {
 
             textView.setText("wifi = " + ConstantManager.getWifi() + "\nip = " + ConstantManager.getIp() + "\nport = " + port);
         });
+
+        recorder = new ScreenRecorder(ClientActivity.this);
+        recorder.start();
 
         // 开启保活服务
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
@@ -110,7 +117,13 @@ public class ClientActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        recorder.requestForResult(requestCode, data);
+        if (requestCode == ScreenRecorder.REQUEST_CODE && resultCode == RESULT_OK){
+            adapter.addMsg("start activity = ok");
+            recorder.requestForResult(resultCode, data);
+        }else {
+            adapter.addMsg("录屏开启失败");
+            ToastUtils.showLong("录屏开启失败");
+        }
     }
 
     @Override

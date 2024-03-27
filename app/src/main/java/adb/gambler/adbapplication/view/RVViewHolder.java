@@ -26,10 +26,10 @@ public class RVViewHolder extends RecyclerView.ViewHolder {
         textView = itemView.findViewById(R.id.item_tv);
     }
 
-    public void update(int num){
-        textView.setText("num = " + num);
+    public void update(String msg){
+        textView.setText(msg);
 
-        switch (num / 3){
+        switch (msg.length() / 3){
             case 0:
                 textView.setBackgroundResource(R.color.purple_700);
                 break;

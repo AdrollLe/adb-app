@@ -1,9 +1,10 @@
 package adb.gambler.video.play;
 
-import static com.google.android.exoplayer2.C.VIDEO_SCALING_MODE_SCALE_TO_FIT;
+import static android.media.MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT;
 
 import android.content.Context;
 
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.ui.PlayerView;
@@ -18,7 +19,8 @@ import com.google.android.exoplayer2.ui.PlayerView;
  */
 public class RemotePlayer extends PlayerView {
 
-	private SimpleExoPlayer player;
+	private ExoPlayer player;
+	private volatile boolean isInit = false;
 
 	public RemotePlayer(Context context) {
 		super(context);
@@ -29,13 +31,20 @@ public class RemotePlayer extends PlayerView {
 		player = new SimpleExoPlayer.Builder(context)
 				.setVideoScalingMode(VIDEO_SCALING_MODE_SCALE_TO_FIT)
 				.build();
-
-		setPlayer(player);
 	}
 
 	public void play(MediaSource source){
-		player.setMediaSource(source);
-		player.prepare();
-		player.play();
+		if (!isInit){
+			isInit = true;
+//			ByteArrayDataSource byteArrayDataSource = new ByteArrayDataSource();
+
+			player.setMediaSource(source);
+			player.prepare();
+
+			setPlayer(player);
+			player.play();
+		}else {
+
+		}
 	}
 }
