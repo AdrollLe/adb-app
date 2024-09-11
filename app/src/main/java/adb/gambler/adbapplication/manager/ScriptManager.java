@@ -2,6 +2,8 @@ package adb.gambler.adbapplication.manager;
 
 import com.blankj.utilcode.util.ThreadUtils;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import adb.gambler.jadb.lib.AdbConnection;
 
 /**
@@ -14,118 +16,62 @@ import adb.gambler.jadb.lib.AdbConnection;
  */
 public class ScriptManager {
 
+	private static ScriptManager INSTANCE;
+
+	private AtomicBoolean runFlag = new AtomicBoolean(true);
+
+	public static ScriptManager getInstance(){
+		if (null == INSTANCE){
+			synchronized (ScriptManager.class){
+				if (null == INSTANCE){
+					INSTANCE = new ScriptManager();
+				}
+			}
+		}
+
+		return INSTANCE;
+	}
+
 	public void run(AdbConnection connection){
+		runFlag.set(true);
 		ThreadUtils.getSinglePool().execute(new Runnable() {
 			@Override
 			public void run() {
-				while (true){
+				while (runFlag.get()){
 					try {
-//						Thread.sleep(5000);
-//						connection.open("shell:input tap 705 268");
-//						Thread.sleep(5000);
-//						connection.open("shell:input tap 705 268");
+						Thread.sleep(10000);
+						connection.open("shell:input tap 688 38");
+						Thread.sleep(4000);
+						connection.open("shell:input tap 326 274");
+						Thread.sleep(4000);
+						connection.open("shell:input tap 457 300");
+//						Thread.sleep(4000);
+//						connection.open("shell:input tap 998 128");
+						Thread.sleep(4000);
+						connection.open("shell:input tap 1057 763");
+						Thread.sleep(2000);
+						connection.open("shell:input tap 794 528");
 
-						Thread.sleep(2000);
-						connection.open("shell:input tap 30 41");
-						Thread.sleep(2000);
-						connection.open("shell:input tap 233 158");
+						Thread.sleep(4000);
+						connection.open("shell:input tap 1091 789");
+						Thread.sleep(4000);
+						connection.open("shell:input tap 1032 464");
 
-						Thread.sleep(5000);
-						connection.open("shell:input tap 408 105");
-						Thread.sleep(2000);
-						connection.open("shell:input tap 342 278");
-
-						Thread.sleep(3000);
-						connection.open("shell:input tap 408 105");
-						Thread.sleep(2000);
-						connection.open("shell:input tap 354 345");
-
-						Thread.sleep(3000);
-						connection.open("shell:input tap 408 105");
-						Thread.sleep(2000);
-						connection.open("shell:input tap 356 450");
-
-						Thread.sleep(3000);
-						connection.open("shell:input tap 1157 719");
-						Thread.sleep(3000);
-						connection.open("shell:input tap 109 224");
-
-						Thread.sleep(3000);
-						connection.open("shell:input tap 47 34");
-						Thread.sleep(2000);
-						connection.open("shell:input tap 374 160");
-
-						Thread.sleep(5000);
-						connection.open("shell:input tap 432 103");
-						Thread.sleep(2000);
-						connection.open("shell:input tap 353 289");
-
-						Thread.sleep(3000);
-						connection.open("shell:input tap 416 112");
-						Thread.sleep(2000);
-						connection.open("shell:input tap 360 352");
-
-						Thread.sleep(3000);
-						connection.open("shell:input tap 407 111");
-						Thread.sleep(2000);
-						connection.open("shell:input tap 365 460");
-
-						Thread.sleep(3000);
-						connection.open("shell:input tap 139 165");
-						Thread.sleep(3000);
-						connection.open("shell:input tap 149 290");
-
-						Thread.sleep(3000);
-						connection.open("shell:input tap 426 112");
-						Thread.sleep(2000);
-						connection.open("shell:input tap 355 290");
-
-						Thread.sleep(3000);
-						connection.open("shell:input tap 413 125");
-						Thread.sleep(2000);
-						connection.open("shell:input tap 348 332");
-
-						Thread.sleep(3000);
-						connection.open("shell:input tap 422 124");
-						Thread.sleep(2000);
-						connection.open("shell:input tap 351 397");
-
-						Thread.sleep(3000);
-						connection.open("shell:input tap 16 27");
-						Thread.sleep(2000);
-						connection.open("shell:input tap 347 312");
-						Thread.sleep(3000);
-						connection.open("shell:input tap 964 726");
-						Thread.sleep(3000);
-						connection.open("shell:input tap 1080 736");
-						Thread.sleep(3000);
-						connection.open("shell:input tap 111 164");
-
-						Thread.sleep(3000);
-						connection.open("shell:input tap 38 34");
-						Thread.sleep(2000);
-						connection.open("shell:input tap 102 142");
-
-						Thread.sleep(3000);
-						connection.open("shell:input tap 234 366");
-						Thread.sleep(2000);
-						connection.open("shell:input tap 433 548");
-						Thread.sleep(2000);
-						connection.open("shell:input tap 1155 723");
-						Thread.sleep(3500);
-						connection.open("shell:input tap 1174 746");
-						Thread.sleep(3000);
-						connection.open("shell:input tap 121 32");
-
-						Thread.sleep(2000);
-						connection.open("shell:input tap 1304 32");
-						Thread.sleep(2000);
-						connection.open("shell:input tap 807 435");
+						Thread.sleep(4000);
+						connection.open("shell:input tap 1033 518");
 					}catch (Exception e){
 						e.printStackTrace();
 					}
 				}
 			}
 		});
+	}
+
+	public void stop(){
+		runFlag.set(false);
+	}
+
+	public void recordStart(){
+
 	}
 }

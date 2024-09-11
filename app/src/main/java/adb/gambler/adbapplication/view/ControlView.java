@@ -118,8 +118,7 @@ public class ControlView extends View{
 	}
 
 	private void initScript(){
-		ScriptManager manager = new ScriptManager();
-		manager.run(connection);
+		ScriptManager.getInstance().run(connection);
 	}
 
 	@Override

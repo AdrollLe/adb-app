@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.Socket;
 
+import adb.gambler.adbapplication.manager.ScriptManager;
 import adb.gambler.adbapplication.view.ControlView;
 import adb.gambler.jadb.lib.AdbConnection;
 import adb.gambler.jadb.lib.AdbCrypto;
@@ -53,12 +54,12 @@ public class ServerActivity extends AppCompatActivity {
 							tvContent.setText("连接成功，将在3秒后镜像");
 						});
 
-						countDownThread.start();
+//						countDownThread.start();
 						controlView = new ControlView(this, adbConnection);
 					}
 				}else {
 					tvConnect.setText("连接");
-					countDownThread.interrupt();
+//					countDownThread.interrupt();
 					destroyConnection();
 				}
 			} catch (Exception e) {
@@ -72,7 +73,7 @@ public class ServerActivity extends AppCompatActivity {
 	protected void onStart() {
 		super.onStart();
 
-		countDownThread = new CountDownThread(this);
+//		countDownThread = new CountDownThread(this);
 	}
 
 	@Override
@@ -85,6 +86,7 @@ public class ServerActivity extends AppCompatActivity {
 	private void destroyConnection(){
 		if (adbConnection != null){
 			try {
+				ScriptManager.getInstance().stop();
 				adbConnection.close();
 			} catch (IOException e) {
 				e.printStackTrace();
