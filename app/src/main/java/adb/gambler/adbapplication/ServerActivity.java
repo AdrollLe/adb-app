@@ -40,7 +40,7 @@ public class ServerActivity extends AppCompatActivity {
 		tvContent = findViewById(R.id.server_tv_text);
 		tvConnect = findViewById(R.id.server_tv_connect);
 
-		tvConnect.setOnClickListener(view -> ThreadUtils.getSinglePool().execute(() -> {
+		tvConnect.setOnClickListener(view -> ThreadUtils.getCachedPool().execute(() -> {
 			try {
 				if (adbConnection == null){
 					KeyboardUtils.hideSoftInput(ServerActivity.this);
@@ -80,6 +80,7 @@ public class ServerActivity extends AppCompatActivity {
 	protected void onDestroy() {
 		super.onDestroy();
 
+		ToastUtils.showLong("page destroy");
 		destroyConnection();
 	}
 

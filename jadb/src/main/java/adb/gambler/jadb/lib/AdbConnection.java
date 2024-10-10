@@ -1,6 +1,9 @@
 package adb.gambler.jadb.lib;
 
 import android.os.Message;
+import android.util.Log;
+
+import com.blankj.utilcode.util.GsonUtils;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -145,6 +148,7 @@ public class AdbConnection implements Closeable {
                         }
 
                         Message message = Message.obtain();
+                        Log.d("Gambler", "msg = " + GsonUtils.toJson(msg));
                         message.obj = "thread, cmd = " + msg.command;
                         switch (msg.command) {
                             /* Stream-oriented commands */
